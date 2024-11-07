@@ -1,0 +1,223 @@
+//command
+import java.util.Stack;
+
+interface Command {
+    void execute();
+    void undo();
+}
+
+class Light {
+    public void on() {
+        System.out.println("Свет қосылды.");
+    }
+
+    public void off() {
+        System.out.println("Свет сөндірілді.");
+    }
+}
+
+class Door {
+    public void open() {
+        System.out.println("Есік ашылды.");
+    }
+
+    public void close() {
+        System.out.println("Есік жабылды.");
+    }
+}
+
+class LightOnCommand implements Command {
+    private Light light;
+
+    public LightOnCommand(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.on();
+    }
+
+    @Override
+    public void undo() {
+        light.off();
+    }
+}
+
+// LightOffCommand, DoorOpenCommand және DoorCloseCommand осылай өзгертілді
+
+class RemoteControl {
+    private Stack<Command> commandHistory = new Stack<>();
+
+    public void pressButton(Command command) {
+        command.execute();
+        commandHistory.push(command);
+    }
+
+    public void pressUndo() {
+        if (!commandHistory.isEmpty()) {
+            commandHistory.pop().undo();
+        } else {
+            System.out.println("Кері қайтарылатын команда жоқ.");
+        }
+    }
+}
+
+public class SmartHomeControl {
+    public static void main(String[] args) {
+        RemoteControl remote = new RemoteControl();
+
+        Light light = new Light();
+        Door door = new Door();
+
+        Command lightOn = new LightOnCommand(light);
+        Command doorOpen = new DoorOpenCommand(door);
+
+        remote.pressButton(lightOn);
+        remote.pressButton(doorOpen);
+        remote.pressUndo();
+    }
+}
+
+
+
+
+//шабл
+import java.util.Scanner;
+
+abstract class Beverage {
+
+    final void prepareRecipe() {
+        boilWater();
+        brew();
+        pourInCup();
+        if (customerWantsCondiments()) {
+            addCondiments();
+        }
+    }
+
+    void boilWater() {
+        System.out.println("Суды қайнату");
+    }
+
+    void pourInCup() {
+        System.out.println("Шай ішу");
+    }
+
+    abstract void brew();
+    abstract void addCondiments();
+
+    boolean customerWantsCondiments() {
+        return true;
+    }
+}
+
+class Tea extends Beverage {
+    @Override
+    void brew() {
+        System.out.println("Шайды қайнату");
+    }
+
+    @Override
+    void addCondiments() {
+        System.out.println("Лимон қосу");
+    }
+}
+
+class HotChocolate extends Beverage {
+    @Override
+    void brew() {
+        System.out.println("Шоколад жасау");
+    }
+
+    @Override
+    void addCondiments() {
+        System.out.println("Маршмеллоу қосу");
+    }
+}
+
+public class BeverageTestDrive {
+    public static void main(String[] args) {
+        Beverage tea = new Tea();
+        tea.prepareRecipe();
+
+        Beverage hotChocolate = new HotChocolate();
+        hotChocolate.prepareRecipe();
+    }
+}
+
+
+
+
+
+
+//посред
+import java.util.ArrayList;
+import java.util.List;
+interface Mediator {
+    void sendMessage(String message, Colleague colleague);
+}
+
+abstract class Colleague {
+    protected Mediator mediator;
+
+    public Colleague(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public abstract void receiveMessage(String message);
+}
+
+class ChatMediator implements Mediator {
+    private List<Colleague> colleagues = new ArrayList<>();
+
+    public void addColleague(Colleague colleague) {
+        colleagues.add(colleague);
+    }
+
+    @Override
+    public void sendMessage(String message, Colleague sender) {
+        for (Colleague colleague : colleagues) {
+            if (colleague != sender) {
+                colleague.receiveMessage(message);
+            }
+        }
+    }
+}
+
+class User extends Colleague {
+    private String name;
+
+    public User(Mediator mediator, String name) {
+        super(mediator);
+        this.name = name;
+    }
+
+    public void send(String message) {
+        System.out.println(name + " жіберді: " + message);
+        mediator.sendMessage(message, this);
+    }
+
+    @Override
+    public void receiveMessage(String message) {
+        System.out.println(name + " алды: " + message);
+    }
+}
+
+public class ChatApp {
+    public static void main(String[] args) {
+        ChatMediator mediator = new ChatMediator();
+
+        User user1 = new User(mediator, "Алина");
+        User user2 = new User(mediator, "Барис");
+        User user3 = new User(mediator, "Эля");
+
+        mediator.addColleague(user1);
+        mediator.addColleague(user2);
+        mediator.addColleague(user3);
+
+        user1.send("Барлықтарыңызға сәлем!");
+        user2.send("Сәлеметсіз бе, Алина!");
+        user3.send("Сәлеметсіздер ме!");
+    }
+}

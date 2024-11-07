@@ -1,0 +1,94 @@
+import java.util.ArrayList;
+import java.util.List;
+
+interface RateSubscriber {
+    void onRateUpdate(String currency, double newRate);
+}
+
+interface RatePublisher {
+    void addSubscriber(RateSubscriber subscriber);
+    void removeSubscriber(RateSubscriber subscriber);
+    void alertSubscribers();
+}
+
+class ExchangeSystem implements RatePublisher {
+    private String currentCurrency;
+    private double currentRate;
+    private final List<RateSubscriber> subscribers = new ArrayList<>();
+
+    public void changeRate(String currency, double rate) {
+        this.currentCurrency = currency;
+        this.currentRate = rate;
+        alertSubscribers();
+    }
+
+    @Override
+    public void addSubscriber(RateSubscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void removeSubscriber(RateSubscriber subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    @Override
+    public void alertSubscribers() {
+        for (RateSubscriber subscriber : subscribers) {
+            subscriber.onRateUpdate(currentCurrency, currentRate);
+        }
+    }
+}
+
+class DisplayBoard implements RateSubscriber {
+    @Override
+    public void onRateUpdate(String currency, double newRate) {
+        System.out.println("Дисплей: Жаңартылған курс " + currency + " : " + newRate);
+    }
+}
+
+class MobileNotifier implements RateSubscriber {
+    @Override
+    public void onRateUpdate(String currency, double newRate) {
+        System.out.println("Мобильдік хабарлама: " + currency + " курсы өзгертілді: " + newRate);
+    }
+}
+
+
+class RateLogger implements RateSubscriber {
+    @Override
+    public void onRateUpdate(String currency, double newRate) {
+        System.out.println("Журнал: " + currency + " курсы жаңартылды: " + newRate);
+    }
+}
+
+
+public class RateObserverApp {
+    public static void main(String[] args) {
+        ExchangeSystem system = new ExchangeSystem();
+
+        RateSubscriber display = new DisplayBoard();
+        RateSubscriber mobile = new MobileNotifier();
+        RateSubscriber logger = new RateLogger();
+
+        system.addSubscriber(display);
+        system.addSubscriber(mobile);
+        system.addSubscriber(logger);
+
+        system.changeRate("USD", 77.50);
+        system.changeRate("EUR", 89.30);
+
+        system.removeSubscriber(mobile);
+        system.changeRate("USD", 78.10);
+    }
+}
+
+
+Дисплей: Жаңартылған курс USD : 77.5
+Мобильдік хабарлама: USD курсы өзгертілді: 77.5
+Журнал: USD курсы жаңартылды: 77.5
+Дисплей: Жаңартылған курс EUR : 89.3
+Мобильдік хабарлама: EUR курсы өзгертілді: 89.3
+Журнал: EUR курсы жаңартылды: 89.3
+Дисплей: Жаңартылған курс USD : 78.1
+Журнал: USD курсы жаңартылды: 78.1

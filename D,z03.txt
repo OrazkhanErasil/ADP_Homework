@@ -1,0 +1,243 @@
+Произведите корректную (правильную) по вашему мнению реализацию с применением принципа Single-Responsibility Principle (SRP):
+
+public class Order
+{
+    public string ProductName { get; set; }
+    public int Quantity { get; set; }
+    public double Price { get; set; }
+}
+
+
+public class PriceCalculator
+{
+    public double CalculateTotalPrice(Order order)
+    {
+        return order.Quantity * order.Price * 0.9; // 10% скидка
+    }
+}
+
+
+public class PaymentProcessor
+{
+    public void ProcessPayment(string paymentDetails)
+    {
+        Console.WriteLine("Payment processed using: " + paymentDetails);
+    }
+}
+
+public class NotificationService
+{
+    public void SendConfirmationEmail(string email)
+    {
+        Console.WriteLine("Confirmation email sent to: " + email);
+    }
+}
+
+Произведите корректную (правильную) по вашему мнению реализацию с применением принципа Open-Closed Principle, OCP:
+
+// Интерфейс для расчета зарплаты
+public interface ISalaryCalculator
+{
+    double CalculateSalary(Employee employee);
+}
+
+// пост. сотрудники
+public class PermanentEmployeeSalaryCalculator : ISalaryCalculator
+{
+    public double CalculateSalary(Employee employee)
+    {
+        double bonus = employee.BaseSalary * 0.2; // Постоянный сотрудник получает 20% бонус
+        return employee.BaseSalary + bonus; // Возвращаем полную зарплату с бонусом
+    }
+}
+
+// Контрактные сотрудники
+public class ContractEmployeeSalaryCalculator : ISalaryCalculator
+{
+    public double CalculateSalary(Employee employee)
+    {
+        double bonus = employee.BaseSalary * 0.1; // Контрактный сотрудник получает 10% бонус
+        return employee.BaseSalary + bonus; // Возвращаем полную зарплату с бонусом
+    }
+}
+
+// Класс для стажеров
+public class InternSalaryCalculator : ISalaryCalculator
+{
+    public double CalculateSalary(Employee employee)
+    {
+        if (employee.BaseSalary < 1000)
+        {
+            return employee.BaseSalary * 0.7; 
+        }
+        return employee.BaseSalary * 0.8; // В противном случае стажер получает 80%
+    }
+}
+
+//фрилансеры (новый тип сотрудника)
+public class FreelancerSalaryCalculator : ISalaryCalculator
+{
+    public double CalculateSalary(Employee employee)
+    {
+        double bonus = employee.BaseSalary * 0.05; // Фрилансер получает 5% бонус
+        return employee.BaseSalary + bonus; // Возвращаем полную зарплату с бонусом
+    }
+}
+
+public class Employee
+{
+    public string Name { get; set; }
+    public double BaseSalary { get; set; }
+    public ISalaryCalculator SalaryCalculator { get; set; }
+}
+
+// расчет зарплаты сотрудников
+public class EmployeeSalaryCalculator
+{
+    public double CalculateSalary(Employee employee)
+    {
+        if (employee.SalaryCalculator == null)
+        {
+            throw new NotSupportedException("Salary calculator not set for employee");
+        }
+
+        double calculatedSalary = employee.SalaryCalculator.CalculateSalary(employee);
+        
+        if (calculatedSalary < 0)
+        {
+            throw new InvalidOperationException("Calculated salary cannot be negative");
+        }
+
+        return calculatedSalary;
+    }
+}
+
+Произведите корректную (правильную) по вашему мнению реализацию с применением принципа Interface Segregation Principle, ISP:
+
+interface IPrinter {
+    void print(String content);
+}
+
+interface IScanner {
+    void scan(String content);
+}
+
+interface IFax {
+    void fax(String content);
+}
+
+// Реализация принтера
+class Printer implements IPrinter {
+    @Override
+    public void print(String content) {
+        System.out.println("Printing: " + content);
+    }
+}
+
+// Реализация сканера
+class Scanner implements IScanner {
+    @Override
+    public void scan(String content) {
+        System.out.println("Scanning: " + content);
+    }
+}
+
+// Реализация факса
+class Fax implements IFax {
+    @Override
+    public void fax(String content) {
+        System.out.println("Faxing: " + content);
+    }
+}
+
+class MultiFunctionDevice implements IPrinter, IScanner, IFax {
+    private final IPrinter printer;
+    private final IScanner scanner;
+    private final IFax fax;
+
+    public MultiFunctionDevice(IPrinter printer, IScanner scanner, IFax fax) {
+        this.printer = printer;
+        this.scanner = scanner;
+        this.fax = fax;
+    }
+
+    @Override
+    public void print(String content) {
+        printer.print(content);
+    }
+
+    @Override
+    public void scan(String content) {
+        scanner.scan(content);
+    }
+
+    @Override
+    public void fax(String content) {
+        fax.fax(content);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        IPrinter printer = new Printer();
+        IScanner scanner = new Scanner();
+        IFax fax = new Fax();
+
+        MultiFunctionDevice mfd = new MultiFunctionDevice(printer, scanner, fax);
+
+        mfd.print("Ты что печатаешь?");
+        mfd.scan("Сканирую, жди");
+        mfd.fax("Кто иизпользует вообще fax");
+    }
+}
+
+Произведите корректную (правильную) по вашему мнению реализацию с применением принципа Dependency-Inversion Principle, DIP:
+
+import java.util.ArrayList; 
+import java.util.List; 
+interface INotificationSender {
+    void sendNotification(String message);
+}
+
+class EmailSender implements INotificationSender {
+    @Override
+    public void sendNotification(String message) {
+        System.out.println("Email sent: " + message);
+    }
+}
+
+class SmsSender implements INotificationSender {
+    @Override
+    public void sendNotification(String message) {
+        System.out.println("SMS sent: " + message);
+    }
+}
+
+class NotificationService {
+    private final List<INotificationSender> notificationSenders;
+
+    public NotificationService(List<INotificationSender> notificationSenders) {
+        this.notificationSenders = notificationSenders;
+    }
+
+    public void sendNotifications(String message) {
+        for (INotificationSender sender : notificationSenders) {
+            sender.sendNotification(message);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        INotificationSender emailSender = new EmailSender();
+        INotificationSender smsSender = new SmsSender();
+
+        List<INotificationSender> senders = new ArrayList<>();
+        senders.add(emailSender);
+        senders.add(smsSender);
+
+        NotificationService notificationService = new NotificationService(senders);
+
+        notificationService.sendNotifications("Текст отправилось, вроде!");
+    }
+}

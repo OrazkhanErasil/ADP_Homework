@@ -1,0 +1,107 @@
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ConfigurationManager {
+    
+    private static volatile ConfigurationManager instance;
+    private Map<String, String> settings;
+    private static final Object lock = new Object();
+
+
+    private ConfigurationManager() {
+        settings = new HashMap<>();
+    }
+
+    // получения единственного экземпляра
+    public static ConfigurationManager getInstance() {
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
+                    instance = new ConfigurationManager();
+                }
+            }
+        }
+        return instance;
+    }
+
+    // Метод для загрузки
+    public void loadSettingsFromFile(String filePath) throws IOException {
+        synchronized (lock) {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                throw new FileNotFoundException("Файл не найден: " + filePath);
+            }
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] keyValue = line.split("=");
+                    if (keyValue.length == 2) {
+                        settings.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+            }
+        }
+    }
+
+    // Метод для сохранения
+    public void saveSettingsToFile(String filePath) throws IOException {
+        synchronized (lock) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                for (Map.Entry<String, String> entry : settings.entrySet()) {
+                    writer.write(entry.getKey() + "=" + entry.getValue());
+                    writer.newLine();
+                }
+            }
+        }
+    }
+
+    // Метод для чтения
+    public String getSetting(String key) {
+        synchronized (lock) {
+            return settings.getOrDefault(key, "Не найдено");
+        }
+    }
+
+    // Метод для изменения
+    public void setSetting(String key, String value) {
+        synchronized (lock) {
+            settings.put(key, value);
+        }
+    }
+
+    // Тестирование
+    public static void main(String[] args) {
+        Runnable task = () -> {
+            ConfigurationManager config = ConfigurationManager.getInstance();
+            System.out.println("Настройка 'database': " + config.getSetting("database"));
+        };
+
+
+        Thread thread1 = new Thread(task);
+        Thread thread2 = new Thread(task);
+
+        // Запуск потоков
+        thread1.start();
+        thread2.start();
+
+        // Тест загрузки настроек
+        ConfigurationManager configManager = ConfigurationManager.getInstance();
+        try {
+            configManager.loadSettingsFromFile("settings.txt");
+            System.out.println("Загрузка настроек завершена.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        configManager.setSetting("newKey", "newValue");
+        try {
+            configManager.saveSettingsToFile("settings.txt");
+            System.out.println("Сохранение настроек завершено.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+

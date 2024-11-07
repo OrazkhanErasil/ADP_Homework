@@ -1,0 +1,203 @@
+import java.util.Scanner;
+
+interface IVehicle {
+    void drive();
+    void refuel();
+}
+
+class Car implements IVehicle {
+    private String brand;
+    private String model;
+    private String fuelType;
+
+    public Car(String brand, String model, String fuelType) {
+        this.brand = brand;
+        this.model = model;
+        this.fuelType = fuelType;
+    }
+
+    @Override
+    public void drive() {
+        System.out.println("Машина " + brand + " " + model + " движется.");
+    }
+
+    @Override
+    public void refuel() {
+        System.out.println("Заправка автомобиля с " + fuelType + ".");
+    }
+}
+
+class Motorcycle implements IVehicle {
+    private String type;
+    private int engineVolume;
+
+    public Motorcycle(String type, int engineVolume) {
+        this.type = type;
+        this.engineVolume = engineVolume;
+    }
+
+    @Override
+    public void drive() {
+        System.out.println("Мотоцикл " + type + " с объемом двигателя " + engineVolume + " за рулем.");
+    }
+
+    @Override
+    public void refuel() {
+        System.out.println("Заправка мотоцикла.");
+    }
+}
+
+class Truck implements IVehicle {
+    private int capacity;
+    private int axles;
+
+    public Truck(int capacity, int axles) {
+        this.capacity = capacity;
+        this.axles = axles;
+    }
+
+    @Override
+    public void drive() {
+        System.out.println("Грузовик вместимостью " + capacity + " тонн и " + axles + " оси ведущие.");
+    }
+
+    @Override
+    public void refuel() {
+        System.out.println("Заправка грузовика.");
+    }
+}
+
+class Bus implements IVehicle {
+    private int seats;
+    private String route;
+
+    public Bus(int seats, String route) {
+        this.seats = seats;
+        this.route = route;
+    }
+
+    @Override
+    public void drive() {
+        System.out.println("Автобус с " + seats + " сиденья едет по маршруту " + route + ".");
+    }
+
+    @Override
+    public void refuel() {
+        System.out.println("Заправка автобуса.");
+    }
+}
+
+abstract class VehicleFactory {
+    public abstract IVehicle createVehicle();
+}
+
+class CarFactory extends VehicleFactory {
+    private String brand;
+    private String model;
+    private String fuelType;
+
+    public CarFactory(String brand, String model, String fuelType) {
+        this.brand = brand;
+        this.model = model;
+        this.fuelType = fuelType;
+    }
+
+    @Override
+    public IVehicle createVehicle() {
+        return new Car(brand, model, fuelType);
+    }
+}
+
+class MotorcycleFactory extends VehicleFactory {
+    private String type;
+    private int engineVolume;
+
+    public MotorcycleFactory(String type, int engineVolume) {
+        this.type = type;
+        this.engineVolume = engineVolume;
+    }
+
+    @Override
+    public IVehicle createVehicle() {
+        return new Motorcycle(type, engineVolume);
+    }
+}
+
+class TruckFactory extends VehicleFactory {
+    private int capacity;
+    private int axles;
+
+    public TruckFactory(int capacity, int axles) {
+        this.capacity = capacity;
+        this.axles = axles;
+    }
+
+    @Override
+    public IVehicle createVehicle() {
+        return new Truck(capacity, axles);
+    }
+}
+
+
+class BusFactory extends VehicleFactory {
+    private int seats;
+    private String route;
+
+    public BusFactory(int seats, String route) {
+        this.seats = seats;
+        this.route = route;
+    }
+
+    @Override
+    public IVehicle createVehicle() {
+        return new Bus(seats, route);
+    }
+}
+
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Выберите тип транспортного средства: 1 — Легковой автомобиль, 2 — Мотоцикл, 3 — Грузовик, 4 — Автобус.");
+        int choice = scanner.nextInt();
+
+        IVehicle vehicle = null;
+        switch (choice) {
+            case 1:
+                System.out.println("Введите марку, модель и тип топлива:");
+                String brand = scanner.next();
+                String model = scanner.next();
+                String fuelType = scanner.next();
+                vehicle = new CarFactory(brand, model, fuelType).createVehicle();
+                break;
+            case 2:
+                System.out.println("Введите тип мотоцикла и объем двигателя:");
+                String type = scanner.next();
+                int engineVolume = scanner.nextInt();
+                vehicle = new MotorcycleFactory(type, engineVolume).createVehicle();
+                break;
+            case 3:
+                System.out.println("Введите грузоподъемность грузовика и количество осей:");
+                int capacity = scanner.nextInt();
+                int axles = scanner.nextInt();
+                vehicle = new TruckFactory(capacity, axles).createVehicle();
+                break;
+            case 4:
+                System.out.println("Введите количество мест и маршрут:");
+                int seats = scanner.nextInt();
+                String route = scanner.next();
+                vehicle = new BusFactory(seats, route).createVehicle();
+                break;
+            default:
+                System.out.println("");
+        }
+
+        if (vehicle != null) {
+            vehicle.drive();
+            vehicle.refuel();
+        }
+
+        scanner.close();
+    }
+}

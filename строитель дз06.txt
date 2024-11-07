@@ -1,0 +1,77 @@
+interface IReportBuilder {
+    void setHeader(String header);
+    void setContent(String content);
+    void setFooter(String footer);
+    Report build();
+}
+
+
+class Report {
+    private String header;
+    private String content;
+    private String footer;
+
+    public void setHeader(String header) { this.header = header; }
+    public void setContent(String content) { this.content = content; }
+    public void setFooter(String footer) { this.footer = footer; }
+
+    @Override
+    public String toString() {
+        return header + "\n" + content + "\n" + footer;
+    }
+}
+
+
+class TextReportBuilder implements IReportBuilder {
+    private Report report;
+
+    public TextReportBuilder() { this.report = new Report(); }
+
+    public void setHeader(String header) { report.setHeader("=== " + header + " ==="); }
+    public void setContent(String content) { report.setContent(content); }
+    public void setFooter(String footer) { report.setFooter("--- " + footer + " ---"); }
+    public Report build() { return report; }
+}
+
+
+class HtmlReportBuilder implements IReportBuilder {
+    private Report report;
+
+    public HtmlReportBuilder() { this.report = new Report(); }
+
+    public void setHeader(String header) { report.setHeader("<h1>" + header + "</h1>"); }
+    public void setContent(String content) { report.setContent("<p>" + content + "</p>"); }
+    public void setFooter(String footer) { report.setFooter("<footer>" + footer + "</footer>"); }
+    public Report build() { return report; }
+}
+
+
+class ReportDirector {
+    public void construct(IReportBuilder builder, String header, String content, String footer) {
+        builder.setHeader(header);
+        builder.setContent(content);
+        builder.setFooter(footer);
+    }
+}
+
+
+public class BuilderPatternDemo {
+    public static void main(String[] args) {
+        ReportDirector director = new ReportDirector();
+
+        //текстов отчет
+        IReportBuilder textBuilder = new TextReportBuilder();
+        director.construct(textBuilder, "Текстовый Отчет", "Содержимое текстового отчета.", "Конец текстового отчета.");
+        Report textReport = textBuilder.build();
+        System.out.println("Текстовый Отчет:");
+        System.out.println(textReport);
+        System.out.println();
+
+        // HTML отчет
+        IReportBuilder htmlBuilder = new HtmlReportBuilder();
+        director.construct(htmlBuilder, "HTML Отчет", "Содержимое HTML отчета.", "Конец HTML отчета.");
+        Report htmlReport = htmlBuilder.build();
+        System.out.println("HTML Отчет:");
+        System.out.println(htmlReport);
+    }
+}

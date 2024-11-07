@@ -1,0 +1,102 @@
+import java.util.ArrayList;
+import java.util.List;
+
+
+interface Subscriber {
+    void onRateChange(String currency, double rate);
+}
+
+
+interface ExchangeRateNotifier {
+    void subscribe(Subscriber subscriber);
+    void unsubscribe(Subscriber subscriber);
+    void notifySubscribers();
+}
+
+
+class RateManager implements ExchangeRateNotifier {
+    private String currentCurrency;
+    private double currentRate;
+    private final List<Subscriber> subscribers = new ArrayList<>();
+
+    public void updateRate(String currency, double rate) {
+        this.currentCurrency = currency;
+        this.currentRate = rate;
+        notifySubscribers();
+    }
+
+    @Override
+    public void subscribe(Subscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void unsubscribe(Subscriber subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    @Override
+    public void notifySubscribers() {
+        for (Subscriber subscriber : subscribers) {
+            subscriber.onRateChange(currentCurrency, currentRate);
+        }
+    }
+}
+
+
+class BoardDisplay implements Subscriber {
+    @Override
+    public void onRateChange(String currency, double rate) {
+        System.out.printf("Тақтада көрсетілуде: %s валюта курсы: %.2f%n", currency, rate);
+    }
+}
+
+
+class AppNotifier implements Subscriber {
+    @Override
+    public void onRateChange(String currency, double rate) {
+        System.out.printf("Мобильдік хабарлама: %s валютасы жаңартылды: %.2f%n", currency, rate);
+    }
+}
+
+
+class ChangeLogger implements Subscriber {
+    @Override
+    public void onRateChange(String currency, double rate) {
+        System.out.printf("Журналға жазылды: %s валюта курсы өзгерді: %.2f%n", currency, rate);
+    }
+}
+
+
+public class Main {
+    public static void main(String[] args) {
+        RateManager manager = new RateManager();
+
+        Subscriber board = new BoardDisplay();
+        Subscriber app = new AppNotifier();
+        Subscriber logger = new ChangeLogger();
+
+        manager.subscribe(board);
+        manager.subscribe(app);
+        manager.subscribe(logger);
+
+        manager.updateRate("USD", 78.30);
+        manager.updateRate("EUR", 88.60);
+
+        manager.unsubscribe(app);
+        manager.updateRate("USD", 79.00);
+    }
+}
+
+
+Тақтада көрсетілуде: USD валюта курсы: 78.30
+Мобильдік хабарлама: USD валютасы жаңартылды: 78.30
+Журналға жазылды: USD валюта курсы өзгерді: 78.30
+Тақтада көрсетілуде: EUR валюта курсы: 88.60
+Мобильдік хабарлама: EUR валютасы жаңартылды: 88.60
+Журналға жазылды: EUR валюта курсы өзгерді: 88.60
+Тақтада көрсетілуде: USD валюта курсы: 79.00
+Журналға жазылды: USD валюта курсы өзгерді: 79.00
+
+
+
